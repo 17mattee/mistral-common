@@ -1347,8 +1347,12 @@ def test_get_lark_from_jinja_json_schema_with_tools_forces_required(version: Tok
 
 
 @pytest.mark.parametrize("version", list(_ALL_TOKENIZERS))
-def test_get_lark_from_jinja_empty_json_schema_is_no_schema(version: TokenizerVersion) -> None:
-    r"""An empty schema renders no JSON branch, so it must not force the `required` branch either."""
+def test_get_lark_from_jinja_empty_json_schema_is_valid_schema(version: TokenizerVersion) -> None:
+    r"""An empty schema `{}` is a valid JSON schema (any object), not the absence of schema.
+
+    Regression test for mistralai/mistral-common#350: `json_schema={}` must render a JSON
+    branch, so it differs from `json_schema=None`.
+    """
     factory = _factory_for(version=version)
 
     def render(json_schema: dict[str, Any] | None) -> str:
@@ -1362,7 +1366,7 @@ def test_get_lark_from_jinja_empty_json_schema_is_no_schema(version: TokenizerVe
             force_tool_names=False,
         )
 
-    assert render(json_schema={}) == render(json_schema=None)
+    assert render(json_schema={}) != render(json_schema=None)
 
 
 @pytest.mark.parametrize("version", [TokenizerVersion.v13, TokenizerVersion.v15])
