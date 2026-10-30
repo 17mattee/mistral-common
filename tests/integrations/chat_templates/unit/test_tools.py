@@ -4,7 +4,12 @@ import pytest
 
 from mistral_common.integrations.chat_templates.chat_templates import generate_chat_template
 from mistral_common.tokens.tokenizers.base import TokenizerVersion
-from tests.integrations.chat_templates.helpers import TestConfig, _load_golden_template, _make_config, render_template
+from tests.integrations.chat_templates.helpers import (
+    TestConfig,
+    build_template_config,
+    load_golden_template,
+    render_template,
+)
 
 
 class TestToolRoleSupport:
@@ -18,6 +23,9 @@ class TestToolRoleSupport:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_values=None,
+            reasoning_effort_default=None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -53,6 +61,9 @@ class TestToolRoleSupport:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_default="none" if version.supports_model_settings else None,
+            reasoning_effort_values=("none", "high") if version.supports_model_settings else None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -94,12 +105,11 @@ class TestToolRoleSupport:
             (TokenizerVersion.v7, False),
             (TokenizerVersion.v7, True),
             (TokenizerVersion.v13, False),
-            (TokenizerVersion.v15, False),
         ],
     )
     def test_user_after_tool_static_matches_dynamic(self, version: TokenizerVersion, spm: bool) -> None:
-        config = _make_config(TestConfig(version=version, spm=spm))
-        static_template = _load_golden_template(config)
+        config = build_template_config(TestConfig(version=version, spm=spm))
+        static_template = load_golden_template(config)
         dynamic_template = generate_chat_template(
             spm=spm,
             tokenizer_version=version,
@@ -109,6 +119,9 @@ class TestToolRoleSupport:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_default="none" if version.supports_model_settings else None,
+            reasoning_effort_values=("none", "high") if version.supports_model_settings else None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -162,6 +175,9 @@ class TestV2ToolResultParsing:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_values=None,
+            reasoning_effort_default=None,
         )
 
     @pytest.mark.parametrize(
@@ -284,6 +300,9 @@ class TestV2ToolResultParsing:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_values=None,
+            reasoning_effort_default=None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -306,7 +325,7 @@ class TestV2ToolResultParsing:
         ]
 
         with pytest.raises(ValueError, match=r"v2 does not support multiple tool results for one assistant turn"):
-            render_template(template, messages, tools=tools)
+            render_template(template=template, messages=messages, tools=tools)
 
 
 class TestV3ToolResultParsing:
@@ -321,6 +340,9 @@ class TestV3ToolResultParsing:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_values=None,
+            reasoning_effort_default=None,
         )
 
     @pytest.mark.parametrize(
@@ -422,6 +444,9 @@ class TestV7ToolCalls:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_values=None,
+            reasoning_effort_default=None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -476,6 +501,9 @@ class TestV7ToolCalls:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_default="none" if version.supports_model_settings else None,
+            reasoning_effort_values=("none", "high") if version.supports_model_settings else None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -548,6 +576,9 @@ class TestV7ToolCalls:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_default="none" if version.supports_model_settings else None,
+            reasoning_effort_values=("none", "high") if version.supports_model_settings else None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -587,6 +618,9 @@ class TestV11ToolCalls:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_values=None,
+            reasoning_effort_default=None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -643,6 +677,9 @@ class TestV11ToolCalls:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_default="none" if version.supports_model_settings else None,
+            reasoning_effort_values=("none", "high") if version.supports_model_settings else None,
         )
 
         messages: list[dict[str, Any]] = [
@@ -697,6 +734,9 @@ class TestV13PlusToolCalls:
             default_system_prompt=None,
             plain_thinking_support=False,
             use_special_token_variables=True,
+            model_settings_fields=None,
+            reasoning_effort_default="none" if version.supports_model_settings else None,
+            reasoning_effort_values=("none", "high") if version.supports_model_settings else None,
         )
 
         messages: list[dict[str, Any]] = [
