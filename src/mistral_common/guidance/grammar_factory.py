@@ -479,7 +479,7 @@ class GrammarFactory:
         if mode == _GrammarMode.required and not tools:
             raise ValueError(f"A forced tool call requires tools, please ensure to pass tools, got {tools=}.")
 
-        json_schema_str = json.dumps(json_schema, ensure_ascii=False) if json_schema else None
+        json_schema_str = json.dumps(json_schema, ensure_ascii=False) if json_schema is not None else None
         if json_schema_str is not None and tools and not json_only and mode == _GrammarMode.auto:
             # Free text before a tool call would also match the JSON answer and defeat the schema,
             # so the union with tools only allows JSON or tool calls.
@@ -492,6 +492,8 @@ class GrammarFactory:
             get_special_token_id=self._special_token_lark,
             force_tool_names=force_tool_names,
         )
+        # NamedToolChoice forces a specific tool, which maps to "required" grammar.
+        template_mode = ToolChoiceEnum.required if isinstance(mode, NamedToolChoice) else ToolChoiceEnum(mode)
         think_with_json = self._tokenizer.version.supports_model_settings
 
         begin_think_token = self._get_optional_special_token_lark(SpecialTokens.begin_think.value)
