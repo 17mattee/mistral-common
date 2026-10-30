@@ -136,3 +136,37 @@ def test_assistant_content_preserves_continue_final_message_tag_space(version: T
     output = _render(_generate(version), messages, autoescape=False)
 
     assert "```python\nCONTINUE_FINAL_MESSAGE_TAG </s>" in output
+
+
+def test_v15_model_settings_block_not_html_escaped() -> None:
+    template = generate_chat_template(
+        spm=False,
+        tokenizer_version=TokenizerVersion.v15,
+        image_support=False,
+        audio_support=False,
+        thinking_support=False,
+        default_system_prompt=None,
+        plain_thinking_support=False,
+        use_special_token_variables=True,
+        model_settings_fields=frozenset({"json_schema", "reasoning_effort"}),
+        reasoning_effort_values=("none", "high"),
+        reasoning_effort_default="none",
+    )
+
+    # render with the extra kwargs the v15 template expects
+    def raise_exception(msg: str) -> None:
+        raise ValueError(msg)
+
+    env = ImmutableSandboxedEnvironment(
+        trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True, autoescape=True
+    )
+    env.globals["raise_exception"] = raise_exception
+    output = env.from_string(template).render(
+        messages=[{"role": "user", "content": "hi"}],
+        bos_token="<s>",
+        eos_token="</s>",
+        response_format={"type": "json_schema", "json_schema": {"name": "x", "schema": {"type": "object"}}},
+        reasoning_effort="high",
+    )
+
+    assert '[MODEL_SETTINGS]{"json_schema": {"type": "object"}, "reasoning_effort": "high"}[/MODEL_SETTINGS]' in output
