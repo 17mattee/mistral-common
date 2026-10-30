@@ -1,3 +1,4 @@
+from mistral_common.image import apply_exif_orientation
 import base64
 import logging
 from dataclasses import dataclass
@@ -75,7 +76,7 @@ def image_from_chunk(chunk: ImageURLChunk | ImageChunk) -> SerializableImage:
             its payload is not valid base64, or its payload is not a decodable image.
     """
     if isinstance(chunk, ImageChunk):
-        return chunk.image
+        return apply_exif_orientation(chunk.image)
     url = chunk.get_url()
     if url.startswith("data:"):
         data = maybe_strip_base64_data_url_prefix(url)
