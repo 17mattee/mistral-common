@@ -492,8 +492,6 @@ class GrammarFactory:
             get_special_token_id=self._special_token_lark,
             force_tool_names=force_tool_names,
         )
-        # NamedToolChoice forces a specific tool, which maps to "required" grammar.
-        template_mode = ToolChoiceEnum.required if isinstance(mode, NamedToolChoice) else ToolChoiceEnum(mode)
         think_with_json = self._tokenizer.version.supports_model_settings
 
         begin_think_token = self._get_optional_special_token_lark(SpecialTokens.begin_think.value)
