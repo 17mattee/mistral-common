@@ -94,7 +94,7 @@ def image_from_chunk(chunk: ImageURLChunk | ImageChunk) -> SerializableImage:
         with open(url.removeprefix("file://"), "rb") as file:
             image = Image.open(file)
             image.load()
-        return image
+        return apply_exif_orientation(image)
     if url.startswith("http"):
         return download_image(url=url, timeout=None)
 

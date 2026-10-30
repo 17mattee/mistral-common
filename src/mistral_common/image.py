@@ -15,7 +15,15 @@ from mistral_common.utils.data_url import maybe_strip_base64_data_url_prefix
 
 
 def apply_exif_orientation(image: Image.Image) -> Image.Image:
-    """Normalizza l'orientamento dell'immagine basandosi sui metadati EXIF."""
+    r"""Normalize the image orientation based on its EXIF metadata.
+
+    Args:
+        image: The input PIL image.
+
+    Returns:
+        The image with the EXIF orientation applied, or the input unchanged
+        when it has no orientation tag or the transposition fails.
+    """
     with contextlib.suppress(Exception):
         transposed = ImageOps.exif_transpose(image)
         if transposed is not None:
@@ -81,7 +89,7 @@ def download_image(url: str, timeout: float | None) -> Image.Image:
         # so a truncated image fails here instead of later at encode time.
         img = Image.open(io.BytesIO(response.content))
         img.load()
-        return img
+        return apply_exif_orientation(img)
 
     except requests.exceptions.Timeout as e:
         raise requests.exceptions.Timeout(
@@ -116,12 +124,12 @@ def maybe_load_image_from_str_or_bytes(x: Image.Image | str | bytes) -> Image.Im
         RuntimeError: If the input cannot be decoded into an image.
     """
     if isinstance(x, Image.Image):
-        return x
+        return apply_exif_orientation(x)
     if isinstance(x, bytes):
         try:
             image = Image.open(io.BytesIO(x))
             image.load()
-            return image
+            return apply_exif_orientation(image)
         except Exception:
             raise RuntimeError("Encountered an error when loading image from bytes.")
 
@@ -129,7 +137,7 @@ def maybe_load_image_from_str_or_bytes(x: Image.Image | str | bytes) -> Image.Im
     try:
         image = Image.open(io.BytesIO(base64.b64decode(x.encode("ascii"))))
         image.load()
-        return image
+        return apply_exif_orientation(image)
     except Exception as e:
         raise RuntimeError(
             f"Encountered an error when loading image from bytes starting "
